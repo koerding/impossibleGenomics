@@ -204,7 +204,7 @@ export default function CausalHorizonCalculator() {
                 marginBottom: '8px',
               }}>
                 <label style={{ fontSize: '14px', color: '#ccc' }}>
-                  Number of Genes (p)
+                  Number of genes or other predictors (p)
                 </label>
                 <span style={{
                   fontFamily: '"IBM Plex Mono", monospace',
