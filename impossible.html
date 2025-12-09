@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Causal Horizon Calculator</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      min-height: 100vh;
+      background: #0a0a0f;
+      color: #e8e8e8;
+      font-family: 'IBM Plex Sans', -apple-system, sans-serif;
+      padding: 40px 20px;
+      line-height: 1.5;
+    }
+    
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    
+    .header {
+      margin-bottom: 48px;
+    }
+    
+    .label-small {
+      font-size: 11px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: #666;
+      margin-bottom: 16px;
+      font-weight: 500;
+    }
+    
+    h1 {
+      font-size: clamp(32px, 5vw, 48px);
+      font-weight: 300;
+      margin: 0;
+      line-height: 1.1;
+      letter-spacing: -1px;
+    }
+    
+    .subtitle {
+      font-size: 15px;
+      color: #888;
+      margin-top: 20px;
+      line-height: 1.6;
+      max-width: 650px;
+      font-weight: 300;
+    }
+    
+    .main-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+    }
+    
+    @media (max-width: 900px) {
+      .main-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    
+    .panel {
+      background: linear-gradient(135deg, #12121a 0%, #0d0d14 100%);
+      border-radius: 16px;
+      padding: 32px;
+      border: 1px solid #1a1a28;
+    }
+    
+    .panel-title {
+      font-size: 13px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #666;
+      margin-bottom: 28px;
+      font-weight: 500;
+    }
+    
+    .slider-group {
+      margin-bottom: 24px;
+    }
+    
+    .slider-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 6px;
+    }
+    
+    .slider-label {
+      font-size: 14px;
+      color: #ccc;
+    }
+    
+    .slider-value {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 16px;
+      font-weight: 500;
+    }
+    
+    .slider-description {
+      font-size: 11px;
+      color: #555;
+      margin-bottom: 10px;
+      line-height: 1.5;
+    }
+    
+    input[type="range"] {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 6px;
+      background: #1a1a24;
+      border-radius: 3px;
+      outline: none;
+    }
+    
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 18px;
+      height: 18px;
+      background: #e8e8e8;
+      border-radius: 50%;
+      cursor: pointer;
+      transition: transform 0.15s ease;
+    }
+    
+    input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.15);
+    }
+    
+    input[type="range"]::-moz-range-thumb {
+      width: 18px;
+      height: 18px;
+      background: #e8e8e8;
+      border-radius: 50%;
+      cursor: pointer;
+      border: none;
+    }
+    
+    .slider-range {
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
+      color: #444;
+      margin-top: 4px;
+    }
+    
+    .results-panel {
+      background: linear-gradient(135deg, #12121a 0%, #0d0d14 100%);
+      border-radius: 16px;
+      padding: 28px;
+      border: 1px solid #1a1a28;
+      margin-bottom: 20px;
+    }
+    
+    .stats-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    
+    .stat-box {
+      background: #0a0a0f;
+      border-radius: 10px;
+      padding: 16px;
+      text-align: center;
+    }
+    
+    .stat-label {
+      font-size: 10px;
+      color: #555;
+      margin-bottom: 6px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+    
+    .stat-value {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 24px;
+      font-weight: 500;
+      color: #e8e8e8;
+      transition: color 0.3s ease;
+    }
+    
+    .stat-value.power {
+      font-size: 28px;
+    }
+    
+    .stat-description {
+      font-size: 10px;
+      color: #444;
+      margin-top: 6px;
+      line-height: 1.3;
+    }
+    
+    .roc-container {
+      background: #0a0a0f;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+    
+    .roc-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    
+    .roc-title {
+      font-size: 12px;
+      color: #666;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+    
+    .auc-badge {
+      background: #1a1a28;
+      border-radius: 6px;
+      padding: 6px 12px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 14px;
+    }
+    
+    .auc-label {
+      color: #666;
+      font-size: 11px;
+      margin-right: 6px;
+    }
+    
+    .auc-value {
+      color: #e8e8e8;
+      font-weight: 500;
+    }
+    
+    .roc-canvas-container {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 1;
+      max-height: 280px;
+    }
+    
+    #roc-canvas {
+      width: 100%;
+      height: 100%;
+    }
+    
+    .interpretation {
+      padding: 16px;
+      background: #0d0d14;
+      border-radius: 10px;
+      border: 1px solid #1a1a28;
+    }
+    
+    .interpretation-text {
+      font-size: 12px;
+      color: #888;
+      line-height: 1.6;
+    }
+    
+    .interpretation-text strong {
+      color: #aaa;
+    }
+    
+    .formula-box {
+      margin-top: 40px;
+      padding: 24px;
+      background: #0d0d14;
+      border-radius: 12px;
+      border: 1px solid #1a1a28;
+    }
+    
+    .formula-title {
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #555;
+      margin-bottom: 12px;
+      font-weight: 500;
+    }
+    
+    .formula-content {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 14px;
+      color: #aaa;
+      line-height: 1.8;
+    }
+    
+    .formula-description {
+      font-size: 11px;
+      color: #555;
+      margin-top: 12px;
+      line-height: 1.5;
+    }
+    
+    .footer {
+      margin-top: 40px;
+      padding-top: 20px;
+      border-top: 1px solid #1a1a28;
+      font-size: 11px;
+      color: #444;
+      text-align: center;
+    }
+    
+    sub {
+      font-size: 0.7em;
+    }
+    
+    sup {
+      font-size: 0.7em;
+    }
+    
+    .section-divider {
+      height: 1px;
+      background: #1a1a28;
+      margin: 20px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <div class="label-small">Spectral Wall Calculator</div>
+      <h1>The Causal Horizon</h1>
+      <p class="subtitle">
+        In high-dimensional genomic data, the 1/f background creates a noise floor that no algorithm can penetrate. 
+        This calculator shows whether your expected effect size is detectable given your experimental design.
+      </p>
+    </div>
+
+    <!-- Main Grid -->
+    <div class="main-grid">
+      <!-- Controls Panel -->
+      <div class="panel">
+        <h2 class="panel-title">Experimental Design</h2>
+
+        <!-- Number of Genes -->
+        <div class="slider-group">
+          <div class="slider-header">
+            <label class="slider-label">Number of Genes (p)</label>
+            <span class="slider-value" id="genes-value">20,000</span>
+          </div>
+          <div class="slider-description">
+            Features in your dataset. Higher dimensionality increases the noise floor.
+          </div>
+          <input type="range" id="genes-slider" min="100" max="50000" step="100" value="20000">
+          <div class="slider-range">
+            <span>100</span>
+            <span>50,000</span>
+          </div>
+        </div>
+
+        <!-- Number of Samples -->
+        <div class="slider-group">
+          <div class="slider-header">
+            <label class="slider-label">Number of Samples (N)</label>
+            <span class="slider-value" id="samples-value">200</span>
+          </div>
+          <div class="slider-description">
+            Independent observations. More samples improve background estimation.
+          </div>
+          <input type="range" id="samples-slider" min="10" max="100000" step="10" value="200">
+          <div class="slider-range">
+            <span>10</span>
+            <span>100,000</span>
+          </div>
+        </div>
+
+        <!-- Background Variance -->
+        <div class="slider-group">
+          <div class="slider-header">
+            <label class="slider-label">Background Variance (σ<sub>fixed</sub>)</label>
+            <span class="slider-value" id="variance-value">0.20</span>
+          </div>
+          <div class="slider-description">
+            Typical correlation noise from global cell state. Usually ~0.2 for transcriptomics.
+          </div>
+          <input type="range" id="variance-slider" min="0.05" max="0.5" step="0.01" value="0.2">
+          <div class="slider-range">
+            <span>0.05</span>
+            <span>0.50</span>
+          </div>
+        </div>
+
+        <div class="section-divider"></div>
+        <h2 class="panel-title">Signal & Detection</h2>
+
+        <!-- Expected Effect Size -->
+        <div class="slider-group">
+          <div class="slider-header">
+            <label class="slider-label">Expected Effect Size (δ)</label>
+            <span class="slider-value" id="delta-value">0.100</span>
+          </div>
+          <div class="slider-description">
+            Correlation strength between regulator and target. Complex traits: δ ~ 0.05–0.15.
+          </div>
+          <input type="range" id="delta-slider" min="0.01" max="0.5" step="0.005" value="0.1">
+          <div class="slider-range">
+            <span>0.01</span>
+            <span>0.50</span>
+          </div>
+        </div>
+
+        <!-- Detection Threshold -->
+        <div class="slider-group" style="margin-bottom: 0;">
+          <div class="slider-header">
+            <label class="slider-label">Detection Threshold (k · σ<sub>min</sub>)</label>
+            <span class="slider-value" id="threshold-value">2.0</span>
+          </div>
+          <div class="slider-description">
+            Call an edge if observed correlation exceeds k × noise floor. Trade off α vs β.
+          </div>
+          <input type="range" id="threshold-slider" min="0.5" max="4" step="0.1" value="2">
+          <div class="slider-range">
+            <span>0.5</span>
+            <span>4.0</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Results Panel -->
+      <div>
+        <div class="results-panel">
+          <h2 class="panel-title">Detection Statistics</h2>
+
+          <!-- Stats Row -->
+          <div class="stats-row">
+            <div class="stat-box">
+              <div class="stat-label">Power (1−β)</div>
+              <div class="stat-value power" id="power-value">2.28%</div>
+              <div class="stat-description">P(detect | true edge)</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-label">False Positive (α)</div>
+              <div class="stat-value" id="fpr-value">2.28%</div>
+              <div class="stat-description">P(call | no edge)</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-label">False Negative (β)</div>
+              <div class="stat-value" id="fnr-value">97.72%</div>
+              <div class="stat-description">P(miss | true edge)</div>
+            </div>
+          </div>
+
+          <!-- ROC Curve -->
+          <div class="roc-container">
+            <div class="roc-header">
+              <div class="roc-title">ROC Curve</div>
+              <div class="auc-badge">
+                <span class="auc-label">AUC</span>
+                <span class="auc-value" id="auc-value">0.528</span>
+              </div>
+            </div>
+            <div class="roc-canvas-container">
+              <canvas id="roc-canvas"></canvas>
+            </div>
+          </div>
+
+          <!-- Noise floor display -->
+          <div style="text-align: center; font-size: 12px; color: #666; margin-bottom: 16px;">
+            Noise floor: σ<sub>min</sub> = <span id="sigma-min-value" style="font-family: 'IBM Plex Mono', monospace; color: #aaa;">0.377</span>
+            &nbsp;·&nbsp;
+            γ = p/N = <span id="gamma-value" style="font-family: 'IBM Plex Mono', monospace; color: #aaa;">100</span>
+          </div>
+        </div>
+
+        <!-- Interpretation -->
+        <div class="interpretation">
+          <div class="interpretation-text" id="interpretation">
+            <strong>Interpretation:</strong> Loading...
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Formula Reference -->
+    <div class="formula-box">
+      <div class="formula-title">The Spectral Wall Theorem</div>
+      <div class="formula-content">
+        <div>σ<sub>min</sub> = σ<sub>fixed</sub> · (p/N)<sup>1/4</sup></div>
+        <div>AUC = Φ(δ / (σ<sub>min</sub> · √2))</div>
+      </div>
+      <div class="formula-description">
+        The noise floor σ<sub>min</sub> emerges from the optimal tradeoff between removing background 
+        covariance and estimation error from finite samples. AUC depends only on d′ = δ/σ<sub>min</sub>; 
+        the threshold slider moves you along the ROC curve.
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      Based on "The Causal Horizon: Why Machine Learning Cannot Overcome the 1/f Limits of Genomic Inference"
+    </div>
+  </div>
+
+  <script>
+    // Standard normal CDF approximation
+    function normalCDF(x) {
+      const a1 =  0.254829592;
+      const a2 = -0.284496736;
+      const a3 =  1.421413741;
+      const a4 = -1.453152027;
+      const a5 =  1.061405429;
+      const p  =  0.3275911;
+      const sign = x < 0 ? -1 : 1;
+      x = Math.abs(x) / Math.sqrt(2);
+      const t = 1.0 / (1.0 + p * x);
+      const y = 1.0 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * Math.exp(-x * x);
+      return 0.5 * (1.0 + sign * y);
+    }
+
+    // Inverse normal CDF (approximation)
+    function normalQuantile(p) {
+      if (p <= 0) return -Infinity;
+      if (p >= 1) return Infinity;
+      if (p === 0.5) return 0;
+      
+      const a = [
+        -3.969683028665376e+01,
+         2.209460984245205e+02,
+        -2.759285104469687e+02,
+         1.383577518672690e+02,
+        -3.066479806614716e+01,
+         2.506628277459239e+00
+      ];
+      const b = [
+        -5.447609879822406e+01,
+         1.615858368580409e+02,
+        -1.556989798598866e+02,
+         6.680131188771972e+01,
+        -1.328068155288572e+01
+      ];
+      const c = [
+        -7.784894002430293e-03,
+        -3.223964580411365e-01,
+        -2.400758277161838e+00,
+        -2.549732539343734e+00,
+         4.374664141464968e+00,
+         2.938163982698783e+00
+      ];
+      const d = [
+         7.784695709041462e-03,
+         3.224671290700398e-01,
+         2.445134137142996e+00,
+         3.754408661907416e+00
+      ];
+      
+      const pLow = 0.02425;
+      const pHigh = 1 - pLow;
+      let q, r;
+      
+      if (p < pLow) {
+        q = Math.sqrt(-2 * Math.log(p));
+        return (((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5]) /
+               ((((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1);
+      } else if (p <= pHigh) {
+        q = p - 0.5;
+        r = q * q;
+        return (((((a[0]*r+a[1])*r+a[2])*r+a[3])*r+a[4])*r+a[5])*q /
+               (((((b[0]*r+b[1])*r+b[2])*r+b[3])*r+b[4])*r+1);
+      } else {
+        q = Math.sqrt(-2 * Math.log(1 - p));
+        return -(((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5]) /
+                ((((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1);
+      }
+    }
+
+    function formatNumber(n, decimals = 3) {
+      if (n < 0.0001) return n.toExponential(2);
+      if (n > 10000) return n.toExponential(2);
+      return n.toFixed(decimals);
+    }
+
+    function formatPercent(n) {
+      if (n < 0.0001) return '< 0.01%';
+      if (n > 0.9999) return '> 99.99%';
+      return (n * 100).toFixed(2) + '%';
+    }
+
+    function getPowerColor(power) {
+      if (power > 0.8) return '#22cc66';
+      if (power > 0.5) return '#44aa44';
+      if (power > 0.2) return '#ff8844';
+      return '#ff4444';
+    }
+
+    function getAUCColor(auc) {
+      if (auc > 0.9) return '#22cc66';
+      if (auc > 0.7) return '#44aa44';
+      if (auc > 0.6) return '#ff8844';
+      return '#ff4444';
+    }
+
+    function drawROC(dPrime, currentFPR, currentTPR) {
+      const canvas = document.getElementById('roc-canvas');
+      const ctx = canvas.getContext('2d');
+      
+      // Set canvas size for retina
+      const rect = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.scale(dpr, dpr);
+      
+      const width = rect.width;
+      const height = rect.height;
+      const padding = 40;
+      const plotWidth = width - 2 * padding;
+      const plotHeight = height - 2 * padding;
+      
+      // Clear
+      ctx.fillStyle = '#0a0a0f';
+      ctx.fillRect(0, 0, width, height);
+      
+      // Draw grid
+      ctx.strokeStyle = '#1a1a24';
+      ctx.lineWidth = 1;
+      for (let i = 0; i <= 4; i++) {
+        const x = padding + (i / 4) * plotWidth;
+        const y = padding + (i / 4) * plotHeight;
+        ctx.beginPath();
+        ctx.moveTo(x, padding);
+        ctx.lineTo(x, padding + plotHeight);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(padding, y);
+        ctx.lineTo(padding + plotWidth, y);
+        ctx.stroke();
+      }
+      
+      // Draw diagonal (chance line)
+      ctx.strokeStyle = '#333';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([4, 4]);
+      ctx.beginPath();
+      ctx.moveTo(padding, padding + plotHeight);
+      ctx.lineTo(padding + plotWidth, padding);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      
+      // Draw ROC curve
+      ctx.strokeStyle = '#666';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      
+      const numPoints = 200;
+      for (let i = 0; i <= numPoints; i++) {
+        const fpr = i / numPoints;
+        // TPR = Φ(Φ⁻¹(FPR) + d')
+        const z = normalQuantile(fpr);
+        const tpr = normalCDF(z + dPrime);
+        
+        const x = padding + fpr * plotWidth;
+        const y = padding + (1 - tpr) * plotHeight;
+        
+        if (i === 0) {
+          ctx.moveTo(x, y);
+        } else {
+          ctx.lineTo(x, y);
+        }
+      }
+      ctx.stroke();
+      
+      // Draw current operating point
+      const pointX = padding + currentFPR * plotWidth;
+      const pointY = padding + (1 - currentTPR) * plotHeight;
+      
+      // Glow effect
+      const gradient = ctx.createRadialGradient(pointX, pointY, 0, pointX, pointY, 15);
+      gradient.addColorStop(0, 'rgba(34, 204, 102, 0.4)');
+      gradient.addColorStop(1, 'rgba(34, 204, 102, 0)');
+      ctx.fillStyle = gradient;
+      ctx.beginPath();
+      ctx.arc(pointX, pointY, 15, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Point
+      ctx.fillStyle = '#22cc66';
+      ctx.beginPath();
+      ctx.arc(pointX, pointY, 6, 0, Math.PI * 2);
+      ctx.fill();
+      
+      ctx.fillStyle = '#0a0a0f';
+      ctx.beginPath();
+      ctx.arc(pointX, pointY, 3, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Axis labels
+      ctx.fillStyle = '#555';
+      ctx.font = '11px IBM Plex Sans';
+      ctx.textAlign = 'center';
+      ctx.fillText('False Positive Rate (α)', width / 2, height - 8);
+      
+      ctx.save();
+      ctx.translate(12, height / 2);
+      ctx.rotate(-Math.PI / 2);
+      ctx.fillText('True Positive Rate (1−β)', 0, 0);
+      ctx.restore();
+      
+      // Tick labels
+      ctx.fillStyle = '#444';
+      ctx.font = '10px IBM Plex Mono';
+      ctx.textAlign = 'center';
+      ctx.fillText('0', padding, height - padding + 15);
+      ctx.fillText('0.5', padding + plotWidth/2, height - padding + 15);
+      ctx.fillText('1', padding + plotWidth, height - padding + 15);
+      
+      ctx.textAlign = 'right';
+      ctx.fillText('0', padding - 5, padding + plotHeight);
+      ctx.fillText('0.5', padding - 5, padding + plotHeight/2);
+      ctx.fillText('1', padding - 5, padding + 4);
+    }
+
+    function calculate() {
+      const numGenes = parseInt(document.getElementById('genes-slider').value);
+      const numSamples = parseInt(document.getElementById('samples-slider').value);
+      const backgroundVariance = parseFloat(document.getElementById('variance-slider').value);
+      const expectedDelta = parseFloat(document.getElementById('delta-slider').value);
+      const thresholdK = parseFloat(document.getElementById('threshold-slider').value);
+
+      // Update displayed values
+      document.getElementById('genes-value').textContent = numGenes.toLocaleString();
+      document.getElementById('samples-value').textContent = numSamples.toLocaleString();
+      document.getElementById('variance-value').textContent = backgroundVariance.toFixed(2);
+      document.getElementById('delta-value').textContent = expectedDelta.toFixed(3);
+      document.getElementById('threshold-value').textContent = thresholdK.toFixed(1);
+
+      // Calculate
+      const gamma = numGenes / numSamples;
+      const sigmaMin = backgroundVariance * Math.pow(gamma, 0.25);
+      const threshold = thresholdK * sigmaMin;
+      
+      // d' (d-prime) - the separation in units of sigma
+      const dPrime = expectedDelta / sigmaMin;
+      
+      // False positive rate: P(noise > threshold) = 1 - Φ(threshold/σ) = 1 - Φ(k)
+      const falsePositiveRate = 1 - normalCDF(thresholdK);
+      
+      // False negative rate: P(signal < threshold) = Φ((threshold - δ)/σ) = Φ(k - d')
+      const falseNegativeRate = normalCDF(thresholdK - dPrime);
+      const power = 1 - falseNegativeRate;
+      
+      // AUC = Φ(d' / √2)
+      const auc = normalCDF(dPrime / Math.sqrt(2));
+
+      // Update displays
+      document.getElementById('sigma-min-value').textContent = formatNumber(sigmaMin);
+      document.getElementById('gamma-value').textContent = formatNumber(gamma);
+
+      const powerColor = getPowerColor(power);
+      document.getElementById('power-value').textContent = formatPercent(power);
+      document.getElementById('power-value').style.color = powerColor;
+
+      document.getElementById('fpr-value').textContent = formatPercent(falsePositiveRate);
+      document.getElementById('fpr-value').style.color = falsePositiveRate > 0.1 ? '#ff8844' : '#888';
+
+      document.getElementById('fnr-value').textContent = formatPercent(falseNegativeRate);
+      document.getElementById('fnr-value').style.color = falseNegativeRate > 0.5 ? '#ff4444' : '#888';
+
+      document.getElementById('auc-value').textContent = auc.toFixed(3);
+      document.getElementById('auc-value').style.color = getAUCColor(auc);
+
+      // Draw ROC curve
+      drawROC(dPrime, falsePositiveRate, power);
+
+      // Update interpretation
+      let interpretation;
+      if (auc < 0.6) {
+        interpretation = `<strong>Interpretation:</strong> With AUC = ${auc.toFixed(3)}, your effect (δ = ${expectedDelta.toFixed(3)}) is barely distinguishable from noise (σ<sub>min</sub> = ${formatNumber(sigmaMin)}). The ROC curve hugs the diagonal—no threshold choice helps much. This is a fundamental limit, not an algorithm problem. Increase N or reduce p.`;
+      } else if (auc < 0.8) {
+        interpretation = `<strong>Interpretation:</strong> AUC = ${auc.toFixed(3)} indicates moderate discriminability. At your current threshold (k = ${thresholdK.toFixed(1)}), you have ${formatPercent(power)} power with ${formatPercent(falsePositiveRate)} false positive rate. Move the threshold slider to explore the tradeoff.`;
+      } else {
+        interpretation = `<strong>Interpretation:</strong> AUC = ${auc.toFixed(3)} indicates good discriminability. Your effect (δ = ${expectedDelta.toFixed(3)}) is well above the noise floor. At threshold k = ${thresholdK.toFixed(1)}, you achieve ${formatPercent(power)} power. You can afford a stricter threshold if false positives are costly.`;
+      }
+      document.getElementById('interpretation').innerHTML = interpretation;
+    }
+
+    // Add event listeners
+    document.getElementById('genes-slider').addEventListener('input', calculate);
+    document.getElementById('samples-slider').addEventListener('input', calculate);
+    document.getElementById('variance-slider').addEventListener('input', calculate);
+    document.getElementById('delta-slider').addEventListener('input', calculate);
+    document.getElementById('threshold-slider').addEventListener('input', calculate);
+
+    // Handle resize
+    window.addEventListener('resize', calculate);
+
+    // Initial calculation
+    calculate();
+  </script>
+</body>
+</html>
